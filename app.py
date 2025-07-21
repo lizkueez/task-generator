@@ -48,10 +48,15 @@ if uploaded_file is not None:
             high_roi_creatives = post_data[post_data['Search ROI'] > 40]['Ad Creative Id'].unique().tolist()
 
             if high_roi_creatives:
+                creative_count = len(high_roi_creatives)
+                total_creatives = creative_count * 2
+                id_label = "ID" if creative_count == 1 else "IDs"
+                id_list = ", ".join(map(str, high_roi_creatives))
+
                 task = {
                     "Original Post ID": post_id,
-                    "Ad Creative IDs": ", ".join(map(str, high_roi_creatives)),
-                    "Task Description": f"Please create 3 inspired versions based on Ad Creative IDs {', '.join(map(str, high_roi_creatives))}. Please focus on policy compliancy."
+                    "Ad Creative IDs": id_list,
+                    "Task Description": f"Please create {total_creatives} inspired creatives based on Ad Creative {id_label} {id_list}. Please focus on policy compliancy."
                 }
                 tasks.append(task)
 
