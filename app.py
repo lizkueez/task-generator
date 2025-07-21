@@ -67,7 +67,7 @@ if uploaded_file is not None:
                     parts.append(f"{video_count * 2} inspired {label}")
                 creative_string = " and ".join(parts)
 
-                # Safe clean-up of Ad Creative IDs for Excel
+                # Safe cleanup of IDs
                 clean_creative_ids = [str(x).replace('="', '').replace('"', '') for x in creative_ids]
                 id_list = ", ".join(clean_creative_ids)
                 id_label = "ID" if len(clean_creative_ids) == 1 else "IDs"
@@ -85,10 +85,14 @@ if uploaded_file is not None:
 
         if not task_df.empty:
             st.success(f"✅ Generated {len(task_df)} task(s) with pay breakdown.")
-            st.write(task_df.style.set_properties(**{
-                'white-space': 'pre-wrap',
-                'word-wrap': 'break-word',
-            }))
+
+            # Wrap description column + expand full width
+            styled_df = task_df.style.set_properties(
+                subset=['Task Description'],
+                **{'white-space': 'pre-wrap', 'word-wrap': 'break-word'}
+            )
+            st.dataframe(styled_df, use_container_width=True)
+
         else:
             st.warning("No qualifying creatives found over $40 ROI for the selected filters.")
 
