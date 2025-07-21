@@ -8,7 +8,6 @@ st.write("Upload a CSV file and select a task type to generate assignment sugges
 
 uploaded_file = st.file_uploader("📄 Upload your CSV file", type=["csv"])
 
-# Step 2: Task type selector (after upload)
 if uploaded_file is not None:
     task_type = st.selectbox("🗂️ Select Task Type", ["", "SGs"], index=0)
 
@@ -40,7 +39,6 @@ if uploaded_file is not None:
                 (df['Ad Creative Author Name'].isin(selected_authors))
             ]
 
-            # Group by Original Post ID, sum ROI
             post_scores = filtered_df.groupby('Original Post ID').agg({
                 'Search ROI': 'sum',
                 'Search ROI%': 'mean'
@@ -58,13 +56,11 @@ if uploaded_file is not None:
                     creative_ids = high_roi_creatives['Ad Creative Id'].unique().tolist()
                     media_types = high_roi_creatives[['Ad Creative Id', 'Ad Creative Media Type']].drop_duplicates()
 
-                    # Count how many are images/videos
                     image_count = media_types[media_types['Ad Creative Media Type'].str.lower() == 'image'].shape[0]
                     video_count = media_types[media_types['Ad Creative Media Type'].str.lower() == 'video'].shape[0]
 
                     total_pay = (image_count * 2 * 1) + (video_count * 2 * 3)
 
-                    # Generate media-specific wording
                     parts = []
                     if image_count > 0:
                         label = "image" if image_count * 2 == 1 else "images"
@@ -74,7 +70,6 @@ if uploaded_file is not None:
                         parts.append(f"{video_count * 2} inspired {label}")
                     creative_string = " and ".join(parts)
 
-                    # Safe cleanup of IDs
                     clean_creative_ids = [str(x).replace('="', '').replace('"', '') for x in creative_ids]
                     id_list = ", ".join(clean_creative_ids)
                     id_label = "ID" if len(clean_creative_ids) == 1 else "IDs"
@@ -85,17 +80,22 @@ if uploaded_file is not None:
                         "Original Post ID": str(post_id).replace('="', '').replace('"', ''),
                         "Ad Creative IDs": id_list,
                         "Task Description": task_description,
-                        "Total Pay": f"${total_pay}"
+                        "Total Pay ($)": f"${total_pay}"
                     })
 
             if tasks:
-                st.success(f"✅ Generated {len(tasks)} task(s). Click 'Copy' to copy each one.")
-                for i, task in enumerate(tasks, 1):
-                    with st.expander(f"📌 Task {i} — Post ID: {task['Original Post ID']} | Total Pay: {task['Total Pay']}"):
-                        st.markdown(f"**Ad Creative IDs:** {task['Ad Creative IDs']}")
-                        st.markdown(f"**Task Description:**")
-                        st.code(task['Task Description'], language='markdown')
-                        st.button(f"📋 Copy Task {i}", key=f"copy_{i}", help="Click to copy manually")
+                st.success(f"✅ Generated {len(tasks)} task(s).")
+
+                task_df = pd.DataFrame(tasks)
+
+                for i, row in task_df.iterrows():
+                    cols = st.columns([1, 2, 3, 1, 1])
+                    cols[0].markdown(f"**{row['Original Post ID']}**")
+                    cols[1].markdown(row["Ad Creative IDs"])
+                    cols[2].markdown(row["Task Description"])
+                    cols[3].markdown(row["Total Pay ($)"])
+                    with cols[4]:
+                        st.code(row["Task Description"], language="markdown")
 
             else:
                 st.warning("No qualifying creatives found over $40 ROI for the selected filters.")
