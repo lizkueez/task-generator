@@ -85,23 +85,23 @@ if uploaded_file is not None:
                         "Original Post ID": str(post_id).replace('="', '').replace('"', ''),
                         "Ad Creative IDs": id_list,
                         "Task Description": task_description,
-                        "Total Pay ($)": f"${total_pay}"
+                        "Total Pay": f"${total_pay}"
                     })
 
-            task_df = pd.DataFrame(tasks)
+            if tasks:
+                st.success(f"✅ Generated {len(tasks)} task(s). Click 'Copy' to copy each one.")
+                for i, task in enumerate(tasks, 1):
+                    with st.expander(f"📌 Task {i} — Post ID: {task['Original Post ID']} | Total Pay: {task['Total Pay']}"):
+                        st.markdown(f"**Ad Creative IDs:** {task['Ad Creative IDs']}")
+                        st.markdown(f"**Task Description:**")
+                        st.code(task['Task Description'], language='markdown')
+                        st.button(f"📋 Copy Task {i}", key=f"copy_{i}", help="Click to copy manually")
 
-            if not task_df.empty:
-                st.success(f"✅ Generated {len(task_df)} task(s) with pay breakdown.")
-                styled = task_df.style.set_properties(
-                    subset=['Task Description', 'Ad Creative IDs'],
-                    **{'white-space': 'pre-wrap', 'word-wrap': 'break-word'}
-                )
-                st.dataframe(styled, use_container_width=True)
             else:
                 st.warning("No qualifying creatives found over $40 ROI for the selected filters.")
 
         except Exception as e:
             st.error(f"⚠️ Error processing file: {e}")
-    
+
     else:
         st.warning("🚧 This task type hasn’t been built yet. Check back soon!")
