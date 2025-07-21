@@ -4,97 +4,104 @@ import pandas as pd
 st.set_page_config(page_title="RSOC Task Generator", page_icon="🐝", layout="wide")
 
 st.title("🐝 RSOC Task Generator")
-st.write("Upload a CSV file with ROI data to get task suggestions based on **Original Post ID**, media type, and freelancer pay.")
+st.write("Upload a CSV file and select a task type to generate assignment suggestions.")
 
 uploaded_file = st.file_uploader("📄 Upload your CSV file", type=["csv"])
 
+# Step 2: Task type selector (after upload)
 if uploaded_file is not None:
-    try:
-        df = pd.read_csv(uploaded_file)
+    task_type = st.selectbox("🗂️ Select Task Type", ["", "SGs"], index=0)
 
-        # Clean numeric fields
-        df['Search ROI'] = df['Search ROI'].replace('[\$,]', '', regex=True).astype(float)
-        df['Search ROI%'] = df['Search ROI%'].replace('[\%,]', '', regex=True).astype(float)
-        df['Combined Score'] = df['Search ROI'] + df['Search ROI%']
+    if task_type == "":
+        st.info("👆 Please select a task type to continue.")
 
-        # Sidebar filters
-        st.sidebar.header("⚙️ Filters")
-        locales = df['Locale'].dropna().unique().tolist()
-        selected_locales = st.sidebar.multiselect("Filter by Locale", locales, default=locales)
+    elif task_type == "SGs":
+        try:
+            df = pd.read_csv(uploaded_file)
 
-        authors = df['Ad Creative Author Name'].dropna().unique().tolist()
-        selected_authors = st.sidebar.multiselect("Filter by Author", authors, default=authors)
+            # Clean numeric fields
+            df['Search ROI'] = df['Search ROI'].replace('[\$,]', '', regex=True).astype(float)
+            df['Search ROI%'] = df['Search ROI%'].replace('[\%,]', '', regex=True).astype(float)
+            df['Combined Score'] = df['Search ROI'] + df['Search ROI%']
 
-        top_n = st.sidebar.selectbox("How many top Original Post IDs?", [5, 10, 20], index=0)
+            # Sidebar filters
+            st.sidebar.header("⚙️ Filters")
+            locales = df['Locale'].dropna().unique().tolist()
+            selected_locales = st.sidebar.multiselect("Filter by Locale", locales, default=locales)
 
-        # Apply filters
-        filtered_df = df[
-            (df['Locale'].isin(selected_locales)) &
-            (df['Ad Creative Author Name'].isin(selected_authors))
-        ]
+            authors = df['Ad Creative Author Name'].dropna().unique().tolist()
+            selected_authors = st.sidebar.multiselect("Filter by Author", authors, default=authors)
 
-        # Group by Original Post ID, sum ROI
-        post_scores = filtered_df.groupby('Original Post ID').agg({
-            'Search ROI': 'sum',
-            'Search ROI%': 'mean'
-        }).sort_values(by='Search ROI', ascending=False).reset_index()
+            top_n = st.sidebar.selectbox("How many top Original Post IDs?", [5, 10, 20], index=0)
 
-        top_posts = post_scores.head(top_n)['Original Post ID'].tolist()
+            # Apply filters
+            filtered_df = df[
+                (df['Locale'].isin(selected_locales)) &
+                (df['Ad Creative Author Name'].isin(selected_authors))
+            ]
 
-        tasks = []
+            # Group by Original Post ID, sum ROI
+            post_scores = filtered_df.groupby('Original Post ID').agg({
+                'Search ROI': 'sum',
+                'Search ROI%': 'mean'
+            }).sort_values(by='Search ROI', ascending=False).reset_index()
 
-        for post_id in top_posts:
-            post_data = filtered_df[filtered_df['Original Post ID'] == post_id]
-            high_roi_creatives = post_data[post_data['Search ROI'] > 40]
+            top_posts = post_scores.head(top_n)['Original Post ID'].tolist()
 
-            if not high_roi_creatives.empty:
-                creative_ids = high_roi_creatives['Ad Creative Id'].unique().tolist()
-                media_types = high_roi_creatives[['Ad Creative Id', 'Ad Creative Media Type']].drop_duplicates()
+            tasks = []
 
-                # Count how many are images/videos
-                image_count = media_types[media_types['Ad Creative Media Type'].str.lower() == 'image'].shape[0]
-                video_count = media_types[media_types['Ad Creative Media Type'].str.lower() == 'video'].shape[0]
+            for post_id in top_posts:
+                post_data = filtered_df[filtered_df['Original Post ID'] == post_id]
+                high_roi_creatives = post_data[post_data['Search ROI'] > 40]
 
-                total_pay = (image_count * 2 * 1) + (video_count * 2 * 3)
+                if not high_roi_creatives.empty:
+                    creative_ids = high_roi_creatives['Ad Creative Id'].unique().tolist()
+                    media_types = high_roi_creatives[['Ad Creative Id', 'Ad Creative Media Type']].drop_duplicates()
 
-                # Generate media-specific wording
-                parts = []
-                if image_count > 0:
-                    label = "image" if image_count * 2 == 1 else "images"
-                    parts.append(f"{image_count * 2} inspired {label}")
-                if video_count > 0:
-                    label = "video" if video_count * 2 == 1 else "videos"
-                    parts.append(f"{video_count * 2} inspired {label}")
-                creative_string = " and ".join(parts)
+                    # Count how many are images/videos
+                    image_count = media_types[media_types['Ad Creative Media Type'].str.lower() == 'image'].shape[0]
+                    video_count = media_types[media_types['Ad Creative Media Type'].str.lower() == 'video'].shape[0]
 
-                # Safe cleanup of IDs
-                clean_creative_ids = [str(x).replace('="', '').replace('"', '') for x in creative_ids]
-                id_list = ", ".join(clean_creative_ids)
-                id_label = "ID" if len(clean_creative_ids) == 1 else "IDs"
+                    total_pay = (image_count * 2 * 1) + (video_count * 2 * 3)
 
-                task_description = f"Please create {creative_string} based on Ad Creative {id_label} {id_list}. Please focus on policy compliancy."
+                    # Generate media-specific wording
+                    parts = []
+                    if image_count > 0:
+                        label = "image" if image_count * 2 == 1 else "images"
+                        parts.append(f"{image_count * 2} inspired {label}")
+                    if video_count > 0:
+                        label = "video" if video_count * 2 == 1 else "videos"
+                        parts.append(f"{video_count * 2} inspired {label}")
+                    creative_string = " and ".join(parts)
 
-                tasks.append({
-                    "Original Post ID": str(post_id).replace('="', '').replace('"', ''),
-                    "Ad Creative IDs": id_list,
-                    "Task Description": task_description,
-                    "Total Pay ($)": f"${total_pay}"
-                })
+                    # Safe cleanup of IDs
+                    clean_creative_ids = [str(x).replace('="', '').replace('"', '') for x in creative_ids]
+                    id_list = ", ".join(clean_creative_ids)
+                    id_label = "ID" if len(clean_creative_ids) == 1 else "IDs"
 
-        task_df = pd.DataFrame(tasks)
+                    task_description = f"Please create {creative_string} based on Ad Creative {id_label} {id_list}. Please focus on policy compliancy."
 
-        if not task_df.empty:
-            st.success(f"✅ Generated {len(task_df)} task(s) with pay breakdown.")
+                    tasks.append({
+                        "Original Post ID": str(post_id).replace('="', '').replace('"', ''),
+                        "Ad Creative IDs": id_list,
+                        "Task Description": task_description,
+                        "Total Pay ($)": f"${total_pay}"
+                    })
 
-            # Display table with full-width layout, wrap long text
-            styled = task_df.style.set_properties(
-                subset=['Task Description', 'Ad Creative IDs'],
-                **{'white-space': 'pre-wrap', 'word-wrap': 'break-word'}
-            )
-            st.dataframe(styled, use_container_width=True)
+            task_df = pd.DataFrame(tasks)
 
-        else:
-            st.warning("No qualifying creatives found over $40 ROI for the selected filters.")
+            if not task_df.empty:
+                st.success(f"✅ Generated {len(task_df)} task(s) with pay breakdown.")
+                styled = task_df.style.set_properties(
+                    subset=['Task Description', 'Ad Creative IDs'],
+                    **{'white-space': 'pre-wrap', 'word-wrap': 'break-word'}
+                )
+                st.dataframe(styled, use_container_width=True)
+            else:
+                st.warning("No qualifying creatives found over $40 ROI for the selected filters.")
 
-    except Exception as e:
-        st.error(f"⚠️ Error processing file: {e}")
+        except Exception as e:
+            st.error(f"⚠️ Error processing file: {e}")
+    
+    else:
+        st.warning("🚧 This task type hasn’t been built yet. Check back soon!")
