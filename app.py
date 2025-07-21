@@ -67,14 +67,15 @@ if uploaded_file is not None:
                     parts.append(f"{video_count * 2} inspired {label}")
                 creative_string = " and ".join(parts)
 
-                # Safer formatting to avoid Excel bugs
-                id_list = ", ".join([str(int(x)) for x in creative_ids])
-                id_label = "ID" if len(creative_ids) == 1 else "IDs"
+                # Safe clean-up of Ad Creative IDs for Excel
+                clean_creative_ids = [str(x).replace('="', '').replace('"', '') for x in creative_ids]
+                id_list = ", ".join(clean_creative_ids)
+                id_label = "ID" if len(clean_creative_ids) == 1 else "IDs"
 
                 task_description = f"Please create {creative_string} based on Ad Creative {id_label} {id_list}. Please focus on policy compliancy."
 
                 tasks.append({
-                    "Original Post ID": int(post_id),
+                    "Original Post ID": str(post_id).replace('="', '').replace('"', ''),
                     "Ad Creative IDs": id_list,
                     "Task Description": task_description,
                     "Total Pay ($)": f"${total_pay}"
