@@ -4,7 +4,7 @@ import pandas as pd
 st.set_page_config(page_title="RSOC Task Generator", page_icon="🐝")
 
 st.title("🐝 RSOC Task Generator")
-st.write("Upload a CSV file with ROI data to get task suggestions based on **Original Post ID**.")
+st.write("Upload a CSV file with ROI data to get task suggestions based on **Original Post ID**, media type, and freelancer pay.")
 
 uploaded_file = st.file_uploader("📄 Upload your CSV file", type=["csv"])
 
@@ -15,7 +15,6 @@ if uploaded_file is not None:
         # Clean numeric fields
         df['Search ROI'] = df['Search ROI'].replace('[\$,]', '', regex=True).astype(float)
         df['Search ROI%'] = df['Search ROI%'].replace('[\%,]', '', regex=True).astype(float)
-
         df['Combined Score'] = df['Search ROI'] + df['Search ROI%']
 
         # Sidebar filters
@@ -34,7 +33,7 @@ if uploaded_file is not None:
             (df['Ad Creative Author Name'].isin(selected_authors))
         ]
 
-        # Group by Original Post ID, sum ROI, then get creatives > $40
+        # Group by Original Post ID, sum ROI
         post_scores = filtered_df.groupby('Original Post ID').agg({
             'Search ROI': 'sum',
             'Search ROI%': 'mean'
@@ -43,27 +42,47 @@ if uploaded_file is not None:
         top_posts = post_scores.head(top_n)['Original Post ID'].tolist()
 
         tasks = []
+
         for post_id in top_posts:
             post_data = filtered_df[filtered_df['Original Post ID'] == post_id]
-            high_roi_creatives = post_data[post_data['Search ROI'] > 40]['Ad Creative Id'].unique().tolist()
+            high_roi_creatives = post_data[post_data['Search ROI'] > 40]
 
-            if high_roi_creatives:
-                creative_count = len(high_roi_creatives)
-                total_creatives = creative_count * 2
-                id_label = "ID" if creative_count == 1 else "IDs"
-                id_list = ", ".join(map(str, high_roi_creatives))
+            if not high_roi_creatives.empty:
+                creative_ids = high_roi_creatives['Ad Creative Id'].unique().tolist()
+                media_types = high_roi_creatives[['Ad Creative Id', 'Ad Creative Media Type']].drop_duplicates()
 
-                task = {
+                # Count how many are images/videos
+                image_count = media_types[media_types['Ad Creative Media Type'].str.lower() == 'image'].shape[0]
+                video_count = media_types[media_types['Ad Creative Media Type'].str.lower() == 'video'].shape[0]
+
+                total_pay = (image_count * 2) + (video_count * 2 * 3)  # 2 per ID × $1 or $3
+
+                # Generate media-specific wording
+                parts = []
+                if image_count > 0:
+                    label = "image" if image_count * 2 == 1 else "images"
+                    parts.append(f"{image_count * 2} inspired {label}")
+                if video_count > 0:
+                    label = "video" if video_count * 2 == 1 else "videos"
+                    parts.append(f"{video_count * 2} inspired {label}")
+                creative_string = " and ".join(parts)
+
+                id_list = ", ".join(map(str, creative_ids))
+                id_label = "ID" if len(creative_ids) == 1 else "IDs"
+
+                task_description = f"Please create {creative_string} based on Ad Creative {id_label} {id_list}. Please focus on policy compliancy."
+
+                tasks.append({
                     "Original Post ID": post_id,
                     "Ad Creative IDs": id_list,
-                    "Task Description": f"Please create {total_creatives} inspired creatives based on Ad Creative {id_label} {id_list}. Please focus on policy compliancy."
-                }
-                tasks.append(task)
+                    "Task Description": task_description,
+                    "Total Pay ($)": f"${total_pay}"
+                })
 
         task_df = pd.DataFrame(tasks)
 
         if not task_df.empty:
-            st.success(f"✅ Generated {len(task_df)} tasks based on top Original Post IDs.")
+            st.success(f"✅ Generated {len(task_df)} task(s) with pay breakdown.")
             st.dataframe(task_df)
         else:
             st.warning("No qualifying creatives found over $40 ROI for the selected filters.")
