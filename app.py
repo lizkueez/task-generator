@@ -55,7 +55,7 @@ if uploaded_file is not None:
                 image_count = media_types[media_types['Ad Creative Media Type'].str.lower() == 'image'].shape[0]
                 video_count = media_types[media_types['Ad Creative Media Type'].str.lower() == 'video'].shape[0]
 
-                total_pay = (image_count * 2) + (video_count * 2 * 3)  # 2 per ID × $1 or $3
+                total_pay = (image_count * 2 * 1) + (video_count * 2 * 3)
 
                 # Generate media-specific wording
                 parts = []
@@ -67,13 +67,14 @@ if uploaded_file is not None:
                     parts.append(f"{video_count * 2} inspired {label}")
                 creative_string = " and ".join(parts)
 
-                id_list = ", ".join(map(str, creative_ids))
+                # Safer formatting to avoid Excel bugs
+                id_list = ", ".join([str(int(x)) for x in creative_ids])
                 id_label = "ID" if len(creative_ids) == 1 else "IDs"
 
                 task_description = f"Please create {creative_string} based on Ad Creative {id_label} {id_list}. Please focus on policy compliancy."
 
                 tasks.append({
-                    "Original Post ID": post_id,
+                    "Original Post ID": int(post_id),
                     "Ad Creative IDs": id_list,
                     "Task Description": task_description,
                     "Total Pay ($)": f"${total_pay}"
@@ -83,7 +84,10 @@ if uploaded_file is not None:
 
         if not task_df.empty:
             st.success(f"✅ Generated {len(task_df)} task(s) with pay breakdown.")
-            st.dataframe(task_df)
+            st.write(task_df.style.set_properties(**{
+                'white-space': 'pre-wrap',
+                'word-wrap': 'break-word',
+            }))
         else:
             st.warning("No qualifying creatives found over $40 ROI for the selected filters.")
 
