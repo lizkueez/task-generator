@@ -95,7 +95,8 @@ if uploaded_file is not None:
                     cols[2].markdown(row["Task Description"])
                     cols[3].markdown(row["Total Pay ($)"])
                     with cols[4]:
-                        st.code(row["Task Description"], language="markdown")
+                        if st.button("📋 Copy", key=f"copy_{i}"):
+                            st.info(f"📎 Task Description:\n\n{row['Task Description']}")
 
             else:
                 st.warning("No qualifying creatives found over $40 ROI for the selected filters.")
