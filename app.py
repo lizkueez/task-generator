@@ -1,7 +1,7 @@
 import streamlit as st
 import pandas as pd
 
-st.set_page_config(page_title="RSOC Task Generator", page_icon="🐝")
+st.set_page_config(page_title="RSOC Task Generator", page_icon="🐝", layout="wide")
 
 st.title("🐝 RSOC Task Generator")
 st.write("Upload a CSV file with ROI data to get task suggestions based on **Original Post ID**, media type, and freelancer pay.")
@@ -86,12 +86,12 @@ if uploaded_file is not None:
         if not task_df.empty:
             st.success(f"✅ Generated {len(task_df)} task(s) with pay breakdown.")
 
-            # Wrap description column + expand full width
-            styled_df = task_df.style.set_properties(
-                subset=['Task Description'],
+            # Display table with full-width layout, wrap long text
+            styled = task_df.style.set_properties(
+                subset=['Task Description', 'Ad Creative IDs'],
                 **{'white-space': 'pre-wrap', 'word-wrap': 'break-word'}
             )
-            st.dataframe(styled_df, use_container_width=True)
+            st.dataframe(styled, use_container_width=True)
 
         else:
             st.warning("No qualifying creatives found over $40 ROI for the selected filters.")
