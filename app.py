@@ -6,22 +6,14 @@ st.set_page_config(page_title="RSOC Task Generator", page_icon="🐝", layout="w
 st.title(":honeybee: RSOC Task Generator")
 st.write("Upload a CSV file and select a task type to generate assignment suggestions.")
 
-# Tier Key on the left
-with st.sidebar:
-    st.markdown("### :bookmark_tabs: Tier Key")
-    st.markdown("**Post & Creative Tier Legend:**")
-    st.markdown("🟢 High ROI: $51+")
-    st.markdown("🟡 Medium ROI: $21–50")
-    st.markdown("🔴 Low ROI: $5–20")
-
 uploaded_file = st.file_uploader(":page_facing_up: Upload your CSV file", type=["csv"])
 
-task_type = st.selectbox(":card_index_dividers: Select Task Type", ["", "SGs", "Partners"], index=0)
+task_type = st.selectbox(":card_index_dividers: Select Task Type", ["", "Internal", "Partners"], index=0)
 
 if task_type == "":
     st.info(":point_up: Please select a task type to continue.")
 
-elif task_type in ["SGs", "Partners"]:
+elif task_type in ["Internal", "Partners"]:
     try:
         if uploaded_file is not None:
             df = pd.read_csv(uploaded_file)
@@ -112,7 +104,7 @@ elif task_type in ["SGs", "Partners"]:
 
                     id_with_tiers = []
                     for _, row_c in media_types.iterrows():
-                        cid = str(row_c['Ad Creative Id']).replace('="', '').replace('"', '')
+                        cid = str(row_c['Ad Creative Id']).replace('=\"', '').replace('\"', '')
                         tier = get_tier_emoji(row_c['Search ROI'])
                         roi = row_c['Search ROI']
                         id_with_tiers.append(f"{cid} {tier} (${roi:.0f})")
@@ -162,3 +154,12 @@ elif task_type in ["SGs", "Partners"]:
 
 else:
     st.warning("🚧 This task type hasn’t been built yet. Check back soon!")
+
+# Tier Key moved to bottom of sidebar
+with st.sidebar:
+    st.markdown("---")
+    st.markdown("### :bookmark_tabs: Tier Key")
+    st.markdown("**Post & Creative Tier Legend:**")
+    st.markdown("🟢 High ROI: $51+")
+    st.markdown("🟡 Medium ROI: $21–50")
+    st.markdown("🔴 Low ROI: $5–20")
