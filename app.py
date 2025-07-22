@@ -68,16 +68,10 @@ if uploaded_file is not None:
             filtered_post_scores = post_scores[post_scores['Tier'].isin(selected_tiers)]
             filtered_post_scores = filtered_post_scores.sort_values(by='Search ROI', ascending=False)
 
-            st.subheader("Original Post ROI Totals")
-            st.dataframe(filtered_post_scores[['Original Post ID', 'Search ROI', 'Tier']])
-
             top_posts = filtered_post_scores.head(top_n)['Original Post ID'].tolist()
 
-            # NEW: Ad Creative ROI Summary
-            st.subheader("Ad Creative ROI Totals")
             creative_summary = filtered_df.groupby('Ad Creative Id')['Search ROI'].sum().reset_index()
-            creative_summary = creative_summary.sort_values(by='Search ROI', ascending=False)
-            st.dataframe(creative_summary)
+            creative_summary.columns = ['Ad Creative Id', 'Creative ROI Sum']
 
             tasks = []
 
@@ -107,15 +101,17 @@ if uploaded_file is not None:
                     for _, row_c in media_types.iterrows():
                         cid = str(row_c['Ad Creative Id']).replace('="', '').replace('"', '')
                         tier = get_tier_emoji(row_c['Search ROI'])
-                        id_with_tiers.append(f"{cid} {tier}")
+                        creative_roi = creative_summary[creative_summary['Ad Creative Id'] == row_c['Ad Creative Id']]['Creative ROI Sum'].values[0]
+                        id_with_tiers.append(f"{cid} {tier} (${creative_roi:.0f})")
 
                     id_list = ", ".join(id_with_tiers)
                     id_label = "ID" if len(id_with_tiers) == 1 else "IDs"
 
                     task_description = f"Please create {creative_string} based on Ad Creative {id_label} {id_list}. Please focus on policy compliancy."
 
+                    post_roi_sum = filtered_post_scores[filtered_post_scores['Original Post ID'] == post_id]['Search ROI'].values[0]
                     tasks.append({
-                        "Original Post ID": str(post_id).replace('="', '').replace('"', ''),
+                        "Original Post ID": f"{post_id} (${post_roi_sum:.0f})",
                         "Ad Creative IDs": id_list,
                         "Task Description": task_description,
                         "Total Pay ($)": f"${total_pay}"
