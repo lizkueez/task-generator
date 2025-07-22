@@ -3,28 +3,26 @@ import pandas as pd
 
 st.set_page_config(page_title="RSOC Task Generator", page_icon="🐝", layout="wide")
 
-st.title("🐝 RSOC Task Generator")
+st.title(":honeybee: RSOC Task Generator")
 st.write("Upload a CSV file and select a task type to generate assignment suggestions.")
 
-uploaded_file = st.file_uploader("📄 Upload your CSV file", type=["csv"])
+uploaded_file = st.file_uploader(":page_facing_up: Upload your CSV file", type=["csv"])
 
 if uploaded_file is not None:
-    task_type = st.selectbox("🗂️ Select Task Type", ["", "SGs"], index=0)
+    task_type = st.selectbox(":card_index_dividers: Select Task Type", ["", "SGs"], index=0)
 
     if task_type == "":
-        st.info("👆 Please select a task type to continue.")
+        st.info(":point_up: Please select a task type to continue.")
 
     elif task_type == "SGs":
         try:
             df = pd.read_csv(uploaded_file)
 
-            # Clean numeric fields
             df['Search ROI'] = df['Search ROI'].replace('[\$,]', '', regex=True).astype(float)
             df['Search ROI%'] = df['Search ROI%'].replace('[\%,]', '', regex=True).astype(float)
             df['Combined Score'] = df['Search ROI'] + df['Search ROI%']
 
-            # Sidebar filters
-            st.sidebar.header("⚙️ Filters")
+            st.sidebar.header(":gear: Filters")
             locales = df['Locale'].dropna().unique().tolist()
             selected_locales = st.sidebar.multiselect("Filter by Locale", locales, default=locales)
 
@@ -33,7 +31,9 @@ if uploaded_file is not None:
 
             top_n = st.sidebar.selectbox("How many top Original Post IDs?", [5, 10, 20], index=0)
 
-            # Apply filters
+            # NEW: Filter by ROI Tier
+            tier_filter = st.sidebar.selectbox("Minimum ROI Tier", ["All", "Medium+", "High Only"], index=0)
+
             filtered_df = df[
                 (df['Locale'].isin(selected_locales)) &
                 (df['Ad Creative Author Name'].isin(selected_authors))
@@ -48,13 +48,30 @@ if uploaded_file is not None:
 
             tasks = []
 
+            def get_tier(roi):
+                if roi >= 51:
+                    return "🟢"  # Green circle
+                elif roi >= 21:
+                    return "🟡"  # Yellow circle
+                elif roi >= 5:
+                    return "🔴"  # Red circle
+                else:
+                    return ""
+
+            def meets_tier_filter(roi):
+                if tier_filter == "High Only":
+                    return roi >= 51
+                elif tier_filter == "Medium+":
+                    return roi >= 21
+                return roi >= 5
+
             for post_id in top_posts:
                 post_data = filtered_df[filtered_df['Original Post ID'] == post_id]
-                high_roi_creatives = post_data[post_data['Search ROI'] > 40]
+                high_roi_creatives = post_data[post_data['Search ROI'].apply(meets_tier_filter)]
 
                 if not high_roi_creatives.empty:
                     creative_ids = high_roi_creatives['Ad Creative Id'].unique().tolist()
-                    media_types = high_roi_creatives[['Ad Creative Id', 'Ad Creative Media Type']].drop_duplicates()
+                    media_types = high_roi_creatives[['Ad Creative Id', 'Ad Creative Media Type', 'Search ROI']].drop_duplicates()
 
                     image_count = media_types[media_types['Ad Creative Media Type'].str.lower() == 'image'].shape[0]
                     video_count = media_types[media_types['Ad Creative Media Type'].str.lower() == 'video'].shape[0]
@@ -70,9 +87,15 @@ if uploaded_file is not None:
                         parts.append(f"{video_count * 2} inspired {label}")
                     creative_string = " and ".join(parts)
 
-                    clean_creative_ids = [str(x).replace('="', '').replace('"', '') for x in creative_ids]
-                    id_list = ", ".join(clean_creative_ids)
-                    id_label = "ID" if len(clean_creative_ids) == 1 else "IDs"
+                    # Format IDs with tier
+                    id_with_tiers = []
+                    for _, row_c in media_types.iterrows():
+                        cid = str(row_c['Ad Creative Id']).replace('="', '').replace('"', '')
+                        tier = get_tier(row_c['Search ROI'])
+                        id_with_tiers.append(f"{cid} {tier}")
+
+                    id_list = ", ".join(id_with_tiers)
+                    id_label = "ID" if len(id_with_tiers) == 1 else "IDs"
 
                     task_description = f"Please create {creative_string} based on Ad Creative {id_label} {id_list}. Please focus on policy compliancy."
 
@@ -85,7 +108,6 @@ if uploaded_file is not None:
 
             if tasks:
                 st.success(f"✅ Generated {len(tasks)} task(s).")
-
                 task_df = pd.DataFrame(tasks)
 
                 for i, row in task_df.iterrows():
@@ -99,7 +121,7 @@ if uploaded_file is not None:
                             st.info(f"📎 Task Description:\n\n{row['Task Description']}")
 
             else:
-                st.warning("No qualifying creatives found over $40 ROI for the selected filters.")
+                st.warning("No qualifying creatives found for the selected filters.")
 
         except Exception as e:
             st.error(f"⚠️ Error processing file: {e}")
