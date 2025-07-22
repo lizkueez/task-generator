@@ -23,7 +23,7 @@ elif task_type in ["Internal", "Partners"]:
             df['Combined Score'] = df['Search ROI'] + df['Search ROI%']
 
             st.sidebar.markdown("### :gear: Filters")
-            top_n = st.sidebar.selectbox("1. How many top Original Post IDs?", [5, 10, 20], index=0)
+            top_n = st.sidebar.number_input("1. How many top Original Post IDs?", min_value=1, value=5, step=1)
 
             with st.sidebar.expander("2. Include Post Tiers"):
                 tier_options = ["Low", "Medium", "High"]
@@ -116,7 +116,7 @@ elif task_type in ["Internal", "Partners"]:
 
                     if task_type == "Partners":
                         website = post_data['Website Name'].iloc[0]
-                        task_description = f"Based on {website}'s article, please create {creative_string} based on Ad Creative {id_label} {', '.join([str(cid).split()[0] for cid in id_with_tiers])}.\nSince this is a partner article, please make some changes so it's not copied 1:1."
+                        task_description = f"Based on {website}'s article, please create {creative_string} for each reference creative in the link.\nSince this is a partner article, please make some changes so it's not copied 1:1."
                     else:
                         task_description = f"Please create {creative_string} based on Ad Creative {id_label} {', '.join([str(cid).split()[0] for cid in id_with_tiers])}.\nPlease focus on policy compliancy."
 
