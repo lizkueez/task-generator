@@ -114,7 +114,7 @@ elif task_type in ["SGs", "Partners"]:
 
                     if task_type == "Partners":
                         website = post_data['Website Name'].iloc[0]
-                        task_description = f"Please create {creative_string} based on Ad Creative {id_label} {', '.join([str(cid).split()[0] for cid in id_with_tiers])}. Please focus on policy compliancy. Based on {website}, since this is a partner article, please make some changes so it's not copied 1:1."
+                        task_description = f"Based on {website}'s article, please create {creative_string} based on Ad Creative {id_label} {', '.join([str(cid).split()[0] for cid in id_with_tiers])}. Please focus on policy compliancy. Since this is a partner article, please make some changes so it's not copied 1:1."
                     else:
                         task_description = f"Please create {creative_string} based on Ad Creative {id_label} {', '.join([str(cid).split()[0] for cid in id_with_tiers])}. Please focus on policy compliancy."
 
