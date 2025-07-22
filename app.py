@@ -32,7 +32,8 @@ if uploaded_file is not None:
             top_n = st.sidebar.selectbox("How many top Original Post IDs?", [5, 10, 20], index=0)
 
             tier_options = ["Low", "Medium", "High"]
-            selected_tiers = st.sidebar.multiselect("Include Post Tiers", tier_options, default=tier_options)
+            selected_post_tiers = st.sidebar.multiselect("Include Post Tiers", tier_options, default=tier_options)
+            selected_creative_tiers = st.sidebar.multiselect("Include Ad Creative Tiers", tier_options, default=tier_options)
 
             def get_post_tier(total_roi):
                 if total_roi >= 51:
@@ -64,19 +65,19 @@ if uploaded_file is not None:
                 'Search ROI%': 'mean'
             }).reset_index()
             post_scores['Tier'] = post_scores['Search ROI'].apply(get_post_tier)
-            filtered_post_scores = post_scores[post_scores['Tier'].isin(selected_tiers)]
+            filtered_post_scores = post_scores[post_scores['Tier'].isin(selected_post_tiers)]
             filtered_post_scores = filtered_post_scores.sort_values(by='Search ROI', ascending=False)
 
             top_posts = filtered_post_scores.head(top_n)['Original Post ID'].tolist()
-
-            creative_summary = filtered_df.groupby('Ad Creative Id')['Search ROI'].sum().reset_index()
-            creative_summary.columns = ['Ad Creative Id', 'Creative ROI Sum']
 
             tasks = []
 
             for post_id in top_posts:
                 post_data = filtered_df[filtered_df['Original Post ID'] == post_id]
-                high_roi_creatives = post_data[post_data['Search ROI'] >= 5]
+                high_roi_creatives = post_data[post_data['Search ROI'] >= 5].copy()
+
+                high_roi_creatives['Tier'] = high_roi_creatives['Search ROI'].apply(get_post_tier)
+                high_roi_creatives = high_roi_creatives[high_roi_creatives['Tier'].isin(selected_creative_tiers)]
 
                 if not high_roi_creatives.empty:
                     creative_ids = high_roi_creatives['Ad Creative Id'].unique().tolist()
