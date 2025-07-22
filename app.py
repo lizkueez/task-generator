@@ -113,14 +113,15 @@ elif task_type in ["Internal", "Partners"]:
 
                     id_list = "\n".join(id_with_tiers)
                     id_label = "ID" if len(id_with_tiers) == 1 else "IDs"
+                    id_only = ", ".join([str(cid).split()[0] for cid in id_with_tiers])
 
                     if task_type == "Partners":
                         website = post_data['Website Name'].iloc[0]
-                        task_description = f"Based on {website}'s article, please create {creative_string}..."
-                        full_description = f"Based on {website}'s article, please create {creative_string} for each reference creative in the link.\nSince this is a partner article, please make some changes so it's not copied 1:1.\nPlease find the link to upload below."
+                        task_description = f"Based on {website}'s article, please create {creative_string} based on Ad Creative {id_label} {id_only}."
+                        full_description = f"{task_description}\nSince this is a partner article, please make some changes so it's not copied 1:1.\nPlease find the link to upload below."
                     else:
-                        task_description = f"Please create {creative_string}..."
-                        full_description = f"Please create {creative_string} based on Ad Creative {id_label} {', '.join([str(cid).split()[0] for cid in id_with_tiers])}.\nPlease focus on policy compliancy.\nPlease find the link to upload below."
+                        task_description = f"Please create {creative_string} based on Ad Creative {id_label} {id_only}."
+                        full_description = f"{task_description}\nPlease focus on policy compliancy.\nPlease find the link to upload below."
 
                     post_roi_sum = filtered_post_scores[filtered_post_scores['Original Post ID'] == post_id]['Search ROI'].values[0]
                     tasks.append({
