@@ -6,6 +6,14 @@ st.set_page_config(page_title="RSOC Task Generator", page_icon="🐝", layout="w
 st.title(":honeybee: RSOC Task Generator")
 st.write("Upload a CSV file and select a task type to generate assignment suggestions.")
 
+# Tier Key on the left
+with st.sidebar:
+    st.markdown("### :bookmark_tabs: Tier Key")
+    st.markdown("**Post & Creative Tier Legend:**")
+    st.markdown("🟢 High ROI: $51+")
+    st.markdown("🟡 Medium ROI: $21–50")
+    st.markdown("🔴 Low ROI: $5–20")
+
 uploaded_file = st.file_uploader(":page_facing_up: Upload your CSV file", type=["csv"])
 
 task_type = st.selectbox(":card_index_dividers: Select Task Type", ["", "SGs", "Partners"], index=0)
