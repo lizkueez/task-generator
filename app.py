@@ -76,6 +76,7 @@ elif task_type in ["Internal", "Partners"]:
             top_posts = filtered_post_scores.head(top_n)['Original Post ID'].tolist()
 
             tasks = []
+            total_payment = 0
 
             for post_id in top_posts:
                 post_data = filtered_df[filtered_df['Original Post ID'] == post_id]
@@ -92,6 +93,7 @@ elif task_type in ["Internal", "Partners"]:
                     video_count = media_types[media_types['Ad Creative Media Type'].str.lower() == 'video'].shape[0]
 
                     total_pay = (image_count * 2 * 1) + (video_count * 2 * 3)
+                    total_payment += total_pay
 
                     parts = []
                     if image_count > 0:
@@ -145,6 +147,8 @@ elif task_type in ["Internal", "Partners"]:
                     cols[3].markdown(row["Total Pay ($)"])
                     with cols[4]:
                         st.button("📋 Copy", key=f"copy_{i}", help=row['Task Description'])
+
+                st.markdown(f"### 💰 Total Pay for All Tasks: **${total_payment}**")
 
             else:
                 st.warning("No qualifying creatives found for the selected filters.")
