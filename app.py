@@ -22,23 +22,23 @@ if uploaded_file is not None:
             df['Search ROI%'] = df['Search ROI%'].replace('[\%,]', '', regex=True).astype(float)
             df['Combined Score'] = df['Search ROI'] + df['Search ROI%']
 
-            with st.sidebar.expander(":gear: Filters", expanded=False):
-                top_n = st.selectbox("1. How many top Original Post IDs?", [5, 10, 20], index=0)
+            st.sidebar.markdown("### :gear: Filters")
+            top_n = st.sidebar.selectbox("1. How many top Original Post IDs?", [5, 10, 20], index=0)
 
-                with st.expander("2. Include Post Tiers"):
-                    tier_options = ["Low", "Medium", "High"]
-                    selected_post_tiers = st.multiselect("Select Post Tiers", tier_options, default=tier_options)
+            with st.sidebar.expander("2. Include Post Tiers"):
+                tier_options = ["Low", "Medium", "High"]
+                selected_post_tiers = st.multiselect("Select Post Tiers", tier_options, default=tier_options)
 
-                with st.expander("3. Include Ad Creative Tiers"):
-                    selected_creative_tiers = st.multiselect("Select Creative Tiers", tier_options, default=tier_options)
+            with st.sidebar.expander("3. Include Ad Creative Tiers"):
+                selected_creative_tiers = st.multiselect("Select Creative Tiers", tier_options, default=tier_options)
 
-                with st.expander("4. Filter by Locale"):
-                    locales = df['Locale'].dropna().unique().tolist()
-                    selected_locales = st.multiselect("Select Locales", locales, default=locales)
+            with st.sidebar.expander("4. Filter by Locale"):
+                locales = df['Locale'].dropna().unique().tolist()
+                selected_locales = st.multiselect("Select Locales", locales, default=locales)
 
-                with st.expander("5. Filter by Author"):
-                    authors = df['Ad Creative Author Name'].dropna().unique().tolist()
-                    selected_authors = st.multiselect("Select Authors", authors, default=authors)
+            with st.sidebar.expander("5. Filter by Author"):
+                authors = df['Ad Creative Author Name'].dropna().unique().tolist()
+                selected_authors = st.multiselect("Select Authors", authors, default=authors)
 
             def get_post_tier(total_roi):
                 if total_roi >= 51:
