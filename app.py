@@ -116,15 +116,18 @@ elif task_type in ["Internal", "Partners"]:
 
                     if task_type == "Partners":
                         website = post_data['Website Name'].iloc[0]
-                        task_description = f"Based on {website}'s article, please create {creative_string} for each reference creative in the link.\nSince this is a partner article, please make some changes so it's not copied 1:1.\nPlease find the link to upload below."
+                        task_description = f"Based on {website}'s article, please create {creative_string}..."
+                        full_description = f"Based on {website}'s article, please create {creative_string} for each reference creative in the link.\nSince this is a partner article, please make some changes so it's not copied 1:1.\nPlease find the link to upload below."
                     else:
-                        task_description = f"Please create {creative_string} based on Ad Creative {id_label} {', '.join([str(cid).split()[0] for cid in id_with_tiers])}.\nPlease focus on policy compliancy.\nPlease find the link to upload below."
+                        task_description = f"Please create {creative_string}..."
+                        full_description = f"Please create {creative_string} based on Ad Creative {id_label} {', '.join([str(cid).split()[0] for cid in id_with_tiers])}.\nPlease focus on policy compliancy.\nPlease find the link to upload below."
 
                     post_roi_sum = filtered_post_scores[filtered_post_scores['Original Post ID'] == post_id]['Search ROI'].values[0]
                     tasks.append({
                         "Original Post ID": f"{post_id} (${post_roi_sum:.0f})",
                         "Ad Creative IDs": id_list,
                         "Task Description": task_description,
+                        "Full Description": full_description,
                         "Total Pay ($)": f"${total_pay}"
                     })
 
@@ -143,10 +146,10 @@ elif task_type in ["Internal", "Partners"]:
                     cols = st.columns([1, 2, 3, 1, 1])
                     cols[0].markdown(f"**{row['Original Post ID']}**")
                     cols[1].markdown(f"<pre style='font-size: 16px'>{row['Ad Creative IDs']}</pre>", unsafe_allow_html=True)
-                    cols[2].markdown(row["Task Description"].replace("\n", "\n\n"))
+                    cols[2].markdown(row["Task Description"])
                     cols[3].markdown(row["Total Pay ($)"])
                     with cols[4]:
-                        st.button("📋 Copy", key=f"copy_{i}", help=row['Task Description'])
+                        st.button("📋 Copy", key=f"copy_{i}", help=row['Full Description'])
 
                 st.markdown(f"### 💰 Total Pay for All Tasks: **${total_payment}**")
 
