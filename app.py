@@ -8,14 +8,14 @@ st.write("Upload a CSV file and select a task type to generate assignment sugges
 
 uploaded_file = st.file_uploader(":page_facing_up: Upload your CSV file", type=["csv"])
 
-if uploaded_file is not None:
-    task_type = st.selectbox(":card_index_dividers: Select Task Type", ["", "SGs"], index=0)
+task_type = st.selectbox(":card_index_dividers: Select Task Type", ["", "SGs"], index=0)
 
-    if task_type == "":
-        st.info(":point_up: Please select a task type to continue.")
+if task_type == "":
+    st.info(":point_up: Please select a task type to continue.")
 
-    elif task_type == "SGs":
-        try:
+elif task_type == "SGs":
+    try:
+        if uploaded_file is not None:
             df = pd.read_csv(uploaded_file)
 
             df['Search ROI'] = df['Search ROI'].replace('[\$,]', '', regex=True).astype(float)
@@ -126,29 +126,13 @@ if uploaded_file is not None:
                 st.success(f"✅ Generated {len(tasks)} task(s).")
                 task_df = pd.DataFrame(tasks)
 
-                st.markdown("""
-                <style>
-                .task-header {
-                    font-weight: 600;
-                    display: flex;
-                    margin-top: 10px;
-                    margin-bottom: -10px;
-                }
-                .task-header div {
-                    flex: 1;
-                    text-align: left;
-                    padding-right: 20px;
-                }
-                </style>
-                <div class="task-header">
-                    <div>Original Post ID</div>
-                    <div>Ad Creative ID</div>
-                    <div>Task Description</div>
-                    <div>Total Pay</div>
-                    <div>Copy</div>
-                </div>
-                <hr>
-                """, unsafe_allow_html=True)
+                # Render aligned headers
+                headers = st.columns([1, 2, 3, 1, 1])
+                headers[0].markdown("**Original Post ID**")
+                headers[1].markdown("**Ad Creative ID**")
+                headers[2].markdown("**Task Description**")
+                headers[3].markdown("**Total Pay**")
+                headers[4].markdown("**Copy**")
 
                 for i, row in task_df.iterrows():
                     cols = st.columns([1, 2, 3, 1, 1])
@@ -162,8 +146,8 @@ if uploaded_file is not None:
             else:
                 st.warning("No qualifying creatives found for the selected filters.")
 
-        except Exception as e:
-            st.error(f"⚠️ Error processing file: {e}")
+    except Exception as e:
+        st.error(f"⚠️ Error processing file: {e}")
 
-    else:
-        st.warning("🚧 This task type hasn’t been built yet. Check back soon!")
+else:
+    st.warning("🚧 This task type hasn’t been built yet. Check back soon!")
