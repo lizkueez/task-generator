@@ -22,18 +22,18 @@ if uploaded_file is not None:
             df['Search ROI%'] = df['Search ROI%'].replace('[\%,]', '', regex=True).astype(float)
             df['Combined Score'] = df['Search ROI'] + df['Search ROI%']
 
-            st.sidebar.header(":gear: Filters")
-            locales = df['Locale'].dropna().unique().tolist()
-            selected_locales = st.sidebar.multiselect("Filter by Locale", locales, default=locales)
+            with st.sidebar.expander(":gear: Filters", expanded=False):
+                top_n = st.selectbox("How many top Original Post IDs?", [5, 10, 20], index=0)
 
-            authors = df['Ad Creative Author Name'].dropna().unique().tolist()
-            selected_authors = st.sidebar.multiselect("Filter by Author", authors, default=authors)
+                tier_options = ["Low", "Medium", "High"]
+                selected_post_tiers = st.multiselect("Include Post Tiers", tier_options, default=tier_options)
+                selected_creative_tiers = st.multiselect("Include Ad Creative Tiers", tier_options, default=tier_options)
 
-            top_n = st.sidebar.selectbox("How many top Original Post IDs?", [5, 10, 20], index=0)
+                locales = df['Locale'].dropna().unique().tolist()
+                selected_locales = st.multiselect("Filter by Locale", locales, default=locales)
 
-            tier_options = ["Low", "Medium", "High"]
-            selected_post_tiers = st.sidebar.multiselect("Include Post Tiers", tier_options, default=tier_options)
-            selected_creative_tiers = st.sidebar.multiselect("Include Ad Creative Tiers", tier_options, default=tier_options)
+                authors = df['Ad Creative Author Name'].dropna().unique().tolist()
+                selected_authors = st.multiselect("Filter by Author", authors, default=authors)
 
             def get_post_tier(total_roi):
                 if total_roi >= 51:
