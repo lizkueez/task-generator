@@ -116,9 +116,9 @@ elif task_type in ["Internal", "Partners"]:
 
                     if task_type == "Partners":
                         website = post_data['Website Name'].iloc[0]
-                        task_description = f"Based on {website}'s article, please create {creative_string} based on Ad Creative {id_label} {', '.join([str(cid).split()[0] for cid in id_with_tiers])}. Please focus on policy compliancy. Since this is a partner article, please make some changes so it's not copied 1:1."
+                        task_description = f"Based on {website}'s article, please create {creative_string} based on Ad Creative {id_label} {', '.join([str(cid).split()[0] for cid in id_with_tiers])}.\nSince this is a partner article, please make some changes so it's not copied 1:1."
                     else:
-                        task_description = f"Please create {creative_string} based on Ad Creative {id_label} {', '.join([str(cid).split()[0] for cid in id_with_tiers])}. Please focus on policy compliancy."
+                        task_description = f"Please create {creative_string} based on Ad Creative {id_label} {', '.join([str(cid).split()[0] for cid in id_with_tiers])}.\nPlease focus on policy compliancy."
 
                     post_roi_sum = filtered_post_scores[filtered_post_scores['Original Post ID'] == post_id]['Search ROI'].values[0]
                     tasks.append({
@@ -143,7 +143,7 @@ elif task_type in ["Internal", "Partners"]:
                     cols = st.columns([1, 2, 3, 1, 1])
                     cols[0].markdown(f"**{row['Original Post ID']}**")
                     cols[1].markdown(f"<pre style='font-size: 16px'>{row['Ad Creative IDs']}</pre>", unsafe_allow_html=True)
-                    cols[2].markdown(row["Task Description"])
+                    cols[2].markdown(row["Task Description"].replace("\n", "\n\n"))
                     cols[3].markdown(row["Total Pay ($)"])
                     with cols[4]:
                         st.button("📋 Copy", key=f"copy_{i}", help=row['Task Description'])
