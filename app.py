@@ -6,13 +6,6 @@ st.set_page_config(page_title="RSOC Task Generator", page_icon="🐝", layout="w
 st.title(":honeybee: RSOC Task Generator")
 st.write("Upload a CSV file and select a task type to generate assignment suggestions.")
 
-# Display column headers as a key
-st.markdown("""
-**Key:**  
-**Original Post ID** | **Ad Creative ID** | **Task Description** | **Summary** | **Copy**
----
-""")
-
 uploaded_file = st.file_uploader(":page_facing_up: Upload your CSV file", type=["csv"])
 
 if uploaded_file is not None:
@@ -132,6 +125,30 @@ if uploaded_file is not None:
             if tasks:
                 st.success(f"✅ Generated {len(tasks)} task(s).")
                 task_df = pd.DataFrame(tasks)
+
+                st.markdown("""
+                <style>
+                .task-header {
+                    font-weight: 600;
+                    display: flex;
+                    margin-top: 10px;
+                    margin-bottom: -10px;
+                }
+                .task-header div {
+                    flex: 1;
+                    text-align: left;
+                    padding-right: 20px;
+                }
+                </style>
+                <div class="task-header">
+                    <div>Original Post ID</div>
+                    <div>Ad Creative ID</div>
+                    <div>Task Description</div>
+                    <div>Total Pay</div>
+                    <div>Copy</div>
+                </div>
+                <hr>
+                """, unsafe_allow_html=True)
 
                 for i, row in task_df.iterrows():
                     cols = st.columns([1, 2, 3, 1, 1])
