@@ -68,7 +68,16 @@ if uploaded_file is not None:
             filtered_post_scores = post_scores[post_scores['Tier'].isin(selected_tiers)]
             filtered_post_scores = filtered_post_scores.sort_values(by='Search ROI', ascending=False)
 
+            st.subheader("Original Post ROI Totals")
+            st.dataframe(filtered_post_scores[['Original Post ID', 'Search ROI', 'Tier']])
+
             top_posts = filtered_post_scores.head(top_n)['Original Post ID'].tolist()
+
+            # NEW: Ad Creative ROI Summary
+            st.subheader("Ad Creative ROI Totals")
+            creative_summary = filtered_df.groupby('Ad Creative Id')['Search ROI'].sum().reset_index()
+            creative_summary = creative_summary.sort_values(by='Search ROI', ascending=False)
+            st.dataframe(creative_summary)
 
             tasks = []
 
