@@ -8,12 +8,12 @@ st.write("Upload a CSV file and select a task type to generate assignment sugges
 
 uploaded_file = st.file_uploader(":page_facing_up: Upload your CSV file", type=["csv"])
 
-task_type = st.selectbox(":card_index_dividers: Select Task Type", ["", "SGs"], index=0)
+task_type = st.selectbox(":card_index_dividers: Select Task Type", ["", "SGs", "Partners"], index=0)
 
 if task_type == "":
     st.info(":point_up: Please select a task type to continue.")
 
-elif task_type == "SGs":
+elif task_type in ["SGs", "Partners"]:
     try:
         if uploaded_file is not None:
             df = pd.read_csv(uploaded_file)
@@ -112,7 +112,11 @@ elif task_type == "SGs":
                     id_list = "\n".join(id_with_tiers)
                     id_label = "ID" if len(id_with_tiers) == 1 else "IDs"
 
-                    task_description = f"Please create {creative_string} based on Ad Creative {id_label} {', '.join([str(cid).split()[0] for cid in id_with_tiers])}. Please focus on policy compliancy."
+                    if task_type == "Partners":
+                        website = post_data['Website Name'].iloc[0]
+                        task_description = f"Please create {creative_string} based on Ad Creative {id_label} {', '.join([str(cid).split()[0] for cid in id_with_tiers])}. Please focus on policy compliancy. Based on {website}, since this is a partner article, please make some changes so it's not copied 1:1."
+                    else:
+                        task_description = f"Please create {creative_string} based on Ad Creative {id_label} {', '.join([str(cid).split()[0] for cid in id_with_tiers])}. Please focus on policy compliancy."
 
                     post_roi_sum = filtered_post_scores[filtered_post_scores['Original Post ID'] == post_id]['Search ROI'].values[0]
                     tasks.append({
@@ -126,7 +130,6 @@ elif task_type == "SGs":
                 st.success(f"✅ Generated {len(tasks)} task(s).")
                 task_df = pd.DataFrame(tasks)
 
-                # Render aligned headers
                 headers = st.columns([1, 2, 3, 1, 1])
                 headers[0].markdown("**Original Post ID**")
                 headers[1].markdown("**Ad Creative ID**")
