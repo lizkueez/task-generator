@@ -6,6 +6,13 @@ st.set_page_config(page_title="RSOC Task Generator", page_icon="🐝", layout="w
 st.title(":honeybee: RSOC Task Generator")
 st.write("Upload a CSV file and select a task type to generate assignment suggestions.")
 
+# Display column headers as a key
+st.markdown("""
+**Key:**  
+**Original Post ID** | **Ad Creative ID** | **Task Description** | **Summary** | **Copy**
+---
+""")
+
 uploaded_file = st.file_uploader(":page_facing_up: Upload your CSV file", type=["csv"])
 
 if uploaded_file is not None:
