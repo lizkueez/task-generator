@@ -69,9 +69,6 @@ if uploaded_file is not None:
 
             top_posts = filtered_post_scores.head(top_n)['Original Post ID'].tolist()
 
-            creative_summary = filtered_df.groupby('Ad Creative Id')['Search ROI'].sum().reset_index()
-            creative_summary.columns = ['Ad Creative Id', 'Creative ROI Sum']
-
             tasks = []
 
             for post_id in top_posts:
@@ -110,7 +107,7 @@ if uploaded_file is not None:
 
                     post_roi_sum = filtered_post_scores[filtered_post_scores['Original Post ID'] == post_id]['Search ROI'].values[0]
                     tasks.append({
-                        "Original Post ID": f"{post_id} (${post_roi_sum:.0f})",
+                        "Original Post ID": f"**{post_id}** (${post_roi_sum:.0f})",
                         "Ad Creative IDs": id_list,
                         "Task Description": task_description,
                         "Total Pay ($)": f"${total_pay}"
@@ -122,10 +119,10 @@ if uploaded_file is not None:
 
                 for i, row in task_df.iterrows():
                     cols = st.columns([1, 2, 3, 1, 1])
-                    cols[0].markdown(f"**{row['Original Post ID']}**")
-                    cols[1].markdown(row["Ad Creative IDs"])
-                    cols[2].markdown(row["Task Description"])
-                    cols[3].markdown(row["Total Pay ($)"])
+                    cols[0].markdown(row['Original Post ID'])
+                    cols[1].markdown(f"<span style='font-family:monospace'>{row['Ad Creative IDs']}</span>", unsafe_allow_html=True)
+                    cols[2].markdown(row['Task Description'])
+                    cols[3].markdown(row['Total Pay ($)'])
                     with cols[4]:
                         st.button("📋 Copy", key=f"copy_{i}", help=row['Task Description'])
 
