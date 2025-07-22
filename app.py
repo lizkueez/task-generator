@@ -23,17 +23,22 @@ if uploaded_file is not None:
             df['Combined Score'] = df['Search ROI'] + df['Search ROI%']
 
             with st.sidebar.expander(":gear: Filters", expanded=False):
-                top_n = st.selectbox("How many top Original Post IDs?", [5, 10, 20], index=0)
+                top_n = st.selectbox("1. How many top Original Post IDs?", [5, 10, 20], index=0)
 
-                tier_options = ["Low", "Medium", "High"]
-                selected_post_tiers = st.multiselect("Include Post Tiers", tier_options, default=tier_options)
-                selected_creative_tiers = st.multiselect("Include Ad Creative Tiers", tier_options, default=tier_options)
+                with st.expander("2. Include Post Tiers"):
+                    tier_options = ["Low", "Medium", "High"]
+                    selected_post_tiers = st.multiselect("Select Post Tiers", tier_options, default=tier_options)
 
-                locales = df['Locale'].dropna().unique().tolist()
-                selected_locales = st.multiselect("Filter by Locale", locales, default=locales)
+                with st.expander("3. Include Ad Creative Tiers"):
+                    selected_creative_tiers = st.multiselect("Select Creative Tiers", tier_options, default=tier_options)
 
-                authors = df['Ad Creative Author Name'].dropna().unique().tolist()
-                selected_authors = st.multiselect("Filter by Author", authors, default=authors)
+                with st.expander("4. Filter by Locale"):
+                    locales = df['Locale'].dropna().unique().tolist()
+                    selected_locales = st.multiselect("Select Locales", locales, default=locales)
+
+                with st.expander("5. Filter by Author"):
+                    authors = df['Ad Creative Author Name'].dropna().unique().tolist()
+                    selected_authors = st.multiselect("Select Authors", authors, default=authors)
 
             def get_post_tier(total_roi):
                 if total_roi >= 51:
@@ -102,7 +107,7 @@ if uploaded_file is not None:
                         cid = str(row_c['Ad Creative Id']).replace('="', '').replace('"', '')
                         tier = get_tier_emoji(row_c['Search ROI'])
                         roi = row_c['Search ROI']
-                        id_with_tiers.append(f"{cid} {tier} (${'{:.0f}'.format(roi)})")
+                        id_with_tiers.append(f"{cid} {tier} (${roi:.0f})")
 
                     id_list = "\n".join(id_with_tiers)
                     id_label = "ID" if len(id_with_tiers) == 1 else "IDs"
