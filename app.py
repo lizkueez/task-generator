@@ -31,7 +31,6 @@ if uploaded_file is not None:
 
             top_n = st.sidebar.selectbox("How many top Original Post IDs?", [5, 10, 20], index=0)
 
-            # NEW: Filter by ROI Tier for Original Post ID total ROI
             tier_options = ["Low", "Medium", "High"]
             selected_tiers = st.sidebar.multiselect("Include Post Tiers", tier_options, default=tier_options)
 
@@ -101,8 +100,8 @@ if uploaded_file is not None:
                     for _, row_c in media_types.iterrows():
                         cid = str(row_c['Ad Creative Id']).replace('="', '').replace('"', '')
                         tier = get_tier_emoji(row_c['Search ROI'])
-                        creative_roi = creative_summary[creative_summary['Ad Creative Id'] == row_c['Ad Creative Id']]['Creative ROI Sum'].values[0]
-                        id_with_tiers.append(f"{cid} {tier} (${creative_roi:.0f})")
+                        roi = row_c['Search ROI']
+                        id_with_tiers.append(f"{cid} {tier} (${roi:.0f})")
 
                     id_list = ", ".join(id_with_tiers)
                     id_label = "ID" if len(id_with_tiers) == 1 else "IDs"
@@ -128,8 +127,7 @@ if uploaded_file is not None:
                     cols[2].markdown(row["Task Description"])
                     cols[3].markdown(row["Total Pay ($)"])
                     with cols[4]:
-                        if st.button("📋 Copy", key=f"copy_{i}"):
-                            st.info(f"📎 Task Description:\n\n{row['Task Description']}")
+                        st.button("📋 Copy", key=f"copy_{i}", help=row['Task Description'])
 
             else:
                 st.warning("No qualifying creatives found for the selected filters.")
