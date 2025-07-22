@@ -101,12 +101,12 @@ if uploaded_file is not None:
                         cid = str(row_c['Ad Creative Id']).replace('="', '').replace('"', '')
                         tier = get_tier_emoji(row_c['Search ROI'])
                         roi = row_c['Search ROI']
-                        id_with_tiers.append(f"{cid} {tier} (${roi:.0f})")
+                        id_with_tiers.append(f"{cid} {tier} (${'{:.0f}'.format(roi)})")
 
                     id_list = ", ".join(id_with_tiers)
                     id_label = "ID" if len(id_with_tiers) == 1 else "IDs"
 
-                    task_description = f"Please create {creative_string} based on Ad Creative {id_label} {id_list}. Please focus on policy compliancy."
+                    task_description = f"Please create {creative_string} based on Ad Creative {id_label} {', '.join([str(cid).split()[0] for cid in id_with_tiers])}. Please focus on policy compliancy."
 
                     post_roi_sum = filtered_post_scores[filtered_post_scores['Original Post ID'] == post_id]['Search ROI'].values[0]
                     tasks.append({
