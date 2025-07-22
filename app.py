@@ -31,8 +31,29 @@ if uploaded_file is not None:
 
             top_n = st.sidebar.selectbox("How many top Original Post IDs?", [5, 10, 20], index=0)
 
-            # NEW: Filter by ROI Tier
-            tier_filter = st.sidebar.selectbox("Minimum ROI Tier", ["All", "Medium+", "High Only"], index=0)
+            # NEW: Filter by ROI Tier for Original Post ID total ROI
+            tier_options = ["Low", "Medium", "High"]
+            selected_tiers = st.sidebar.multiselect("Include Post Tiers", tier_options, default=tier_options)
+
+            def get_post_tier(total_roi):
+                if total_roi >= 51:
+                    return "High"
+                elif total_roi >= 21:
+                    return "Medium"
+                elif total_roi >= 5:
+                    return "Low"
+                else:
+                    return ""
+
+            def get_tier_emoji(roi):
+                if roi >= 51:
+                    return "🟢"
+                elif roi >= 21:
+                    return "🟡"
+                elif roi >= 5:
+                    return "🔴"
+                else:
+                    return ""
 
             filtered_df = df[
                 (df['Locale'].isin(selected_locales)) &
@@ -42,32 +63,18 @@ if uploaded_file is not None:
             post_scores = filtered_df.groupby('Original Post ID').agg({
                 'Search ROI': 'sum',
                 'Search ROI%': 'mean'
-            }).sort_values(by='Search ROI', ascending=False).reset_index()
+            }).reset_index()
+            post_scores['Tier'] = post_scores['Search ROI'].apply(get_post_tier)
+            filtered_post_scores = post_scores[post_scores['Tier'].isin(selected_tiers)]
+            filtered_post_scores = filtered_post_scores.sort_values(by='Search ROI', ascending=False)
 
-            top_posts = post_scores.head(top_n)['Original Post ID'].tolist()
+            top_posts = filtered_post_scores.head(top_n)['Original Post ID'].tolist()
 
             tasks = []
 
-            def get_tier(roi):
-                if roi >= 51:
-                    return "🟢"  # Green circle
-                elif roi >= 21:
-                    return "🟡"  # Yellow circle
-                elif roi >= 5:
-                    return "🔴"  # Red circle
-                else:
-                    return ""
-
-            def meets_tier_filter(roi):
-                if tier_filter == "High Only":
-                    return roi >= 51
-                elif tier_filter == "Medium+":
-                    return roi >= 21
-                return roi >= 5
-
             for post_id in top_posts:
                 post_data = filtered_df[filtered_df['Original Post ID'] == post_id]
-                high_roi_creatives = post_data[post_data['Search ROI'].apply(meets_tier_filter)]
+                high_roi_creatives = post_data[post_data['Search ROI'] >= 5]
 
                 if not high_roi_creatives.empty:
                     creative_ids = high_roi_creatives['Ad Creative Id'].unique().tolist()
@@ -87,11 +94,10 @@ if uploaded_file is not None:
                         parts.append(f"{video_count * 2} inspired {label}")
                     creative_string = " and ".join(parts)
 
-                    # Format IDs with tier
                     id_with_tiers = []
                     for _, row_c in media_types.iterrows():
                         cid = str(row_c['Ad Creative Id']).replace('="', '').replace('"', '')
-                        tier = get_tier(row_c['Search ROI'])
+                        tier = get_tier_emoji(row_c['Search ROI'])
                         id_with_tiers.append(f"{cid} {tier}")
 
                     id_list = ", ".join(id_with_tiers)
