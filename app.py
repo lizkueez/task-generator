@@ -124,8 +124,10 @@ elif task_type in ["Internal", "Partners"]:
                         full_description = f"{task_description}\nPlease focus on policy compliancy.\nPlease find the link to upload below."
 
                     post_roi_sum = filtered_post_scores[filtered_post_scores['Original Post ID'] == post_id]['Search ROI'].values[0]
+                    article_name = post_data['Original Article Name'].iloc[0] if 'Original Article Name' in post_data.columns else ""
                     tasks.append({
                         "Original Post ID": f"{post_id} (${post_roi_sum:.0f})",
+                        "Article Name": article_name,
                         "Ad Creative IDs": id_list,
                         "Task Description": task_description,
                         "Full Description": full_description,
@@ -136,20 +138,22 @@ elif task_type in ["Internal", "Partners"]:
                 st.success(f"✅ Generated {len(tasks)} task(s).")
                 task_df = pd.DataFrame(tasks)
 
-                headers = st.columns([1, 2, 3, 1, 1])
+                headers = st.columns([1, 1.5, 2, 3, 1, 1])
                 headers[0].markdown("**Original Post ID**")
-                headers[1].markdown("**Ad Creative ID**")
-                headers[2].markdown("**Task Description**")
-                headers[3].markdown("**Total Pay**")
-                headers[4].markdown("**Copy**")
+                headers[1].markdown("**Article Name**")
+                headers[2].markdown("**Ad Creative ID**")
+                headers[3].markdown("**Task Description**")
+                headers[4].markdown("**Total Pay**")
+                headers[5].markdown("**Copy**")
 
                 for i, row in task_df.iterrows():
-                    cols = st.columns([1, 2, 3, 1, 1])
+                    cols = st.columns([1, 1.5, 2, 3, 1, 1])
                     cols[0].markdown(f"**{row['Original Post ID']}**")
-                    cols[1].markdown(f"<pre style='font-size: 16px'>{row['Ad Creative IDs']}</pre>", unsafe_allow_html=True)
-                    cols[2].markdown(row["Task Description"])
-                    cols[3].markdown(row["Total Pay ($)"])
-                    with cols[4]:
+                    cols[1].markdown(row['Article Name'])
+                    cols[2].markdown(f"<pre style='font-size: 16px'>{row['Ad Creative IDs']}</pre>", unsafe_allow_html=True)
+                    cols[3].markdown(row["Task Description"])
+                    cols[4].markdown(row["Total Pay ($)"])
+                    with cols[5]:
                         st.button("📋 Copy", key=f"copy_{i}", help=row['Full Description'])
 
                 st.markdown(f"### 💰 Total Pay for All Tasks: **${total_payment}**")
